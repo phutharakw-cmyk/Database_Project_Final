@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Login{% endblock %}
+{% block content %}
+<div class="auth-box card">
+  <h1>Log in</h1>
+  <p class="muted">Book seats, review movies and track your tickets.</p>
+  <form method="post">
+    <div class="field"><label>Email</label><input name="email" type="email" required autofocus value="{{ request.form.email }}"></div>
+    <div class="field"><label>Password</label><input name="password" type="password" required></div>
+    <button class="btn primary block" type="submit">Log in</button>
+  </form>
+  <p class="small muted" style="margin-top:1rem">No account? <a class="link" href="{{ url_for('auth.register') }}">Register</a></p>
+  <details class="small" style="margin-top:.6rem">
+    <summary>Demo accounts</summary>
+    <p class="muted">admin@cinema.local / admin123<br>alice@example.com / alice123<br>bob@example.com / bob123</p>
+  </details>
+</div>
+{% endblock %}

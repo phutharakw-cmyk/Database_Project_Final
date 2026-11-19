@@ -1,0 +1,30 @@
+{% macro poster(movie, cls='poster') -%}
+  {% if movie.poster_path %}
+    <img class="{{ cls }}" src="{{ url_for('static', filename=movie.poster_path) }}" alt="{{ movie.title or movie.movie_title }}">
+  {% else %}
+    <div class="poster-ph">{{ movie.title or movie.movie_title }}</div>
+  {% endif %}
+{%- endmacro %}
+
+{% macro stars(value) -%}
+  {% set full = (value or 0) | round(0, 'common') | int %}
+  <span class="stars">{% for i in range(5) %}{{ '★' if i < full else '☆' }}{% endfor %}</span>
+{%- endmacro %}
+
+{% macro status_chip(status) -%}
+  {% if status == 'now_showing' %}<span class="chip green">Now showing</span>
+  {% elif status == 'coming_soon' %}<span class="chip amber">Coming soon</span>
+  {% elif status == 'confirmed' %}<span class="chip green">Confirmed</span>
+  {% elif status == 'cancelled' %}<span class="chip red">Cancelled</span>
+  {% else %}<span class="chip">{{ status | replace('_', ' ') | title }}</span>{% endif %}
+{%- endmacro %}
+
+{% macro pay_label(m) -%}
+  {{ {'cash': 'Cash at counter', 'credit_card': 'Credit card', 'promptpay': 'PromptPay'}.get(m, m) }}
+{%- endmacro %}
+
+{% macro confirm_form(action, label, message, cls='btn danger sm') -%}
+  <form class="inline" method="post" action="{{ action }}" onsubmit="return confirm('{{ message }}')">
+    <button class="{{ cls }}" type="submit">{{ label }}</button>
+  </form>
+{%- endmacro %}

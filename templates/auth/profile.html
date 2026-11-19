@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Profile{% endblock %}
+{% block content %}
+<div class="page-head"><h1>My profile</h1><span class="tag-sql">MySQL · users</span></div>
+<div class="grid grid-2">
+  <div class="card">
+    <div class="row" style="margin-bottom:1rem">
+      {% if user.avatar_path %}
+        <img class="avatar-lg" src="{{ url_for('static', filename=user.avatar_path) }}" alt="avatar">
+      {% else %}
+        <div class="avatar-ph">{{ user.name[0] | upper }}</div>
+      {% endif %}
+      <div>
+        <h2 style="margin:0">{{ user.name }}</h2>
+        <div class="muted">{{ user.email }}</div>
+        <div class="chips" style="margin-top:.3rem"><span class="chip">{{ user.role }}</span><span class="chip">member since {{ user.created_at | dt('%d %b %Y') }}</span></div>
+      </div>
+    </div>
+    <form method="post" action="{{ url_for('auth.upload_avatar') }}" enctype="multipart/form-data" class="inline-form">
+      <input type="file" name="avatar" accept="image/*" required>
+      <button class="btn sm" type="submit">Upload avatar</button>
+    </form>
+    <p class="small muted">Saved on the server in <code>static/uploads/avatars/</code></p>
+  </div>
+
+  <div class="card">
+    <h2>Edit details</h2>
+    <form method="post">
+      <div class="field"><label>Name</label><input name="name" value="{{ user.name }}" required></div>
+      <div class="field"><label>Email</label><input name="email" type="email" value="{{ user.email }}" required></div>
+      <div class="field"><label>Phone</label><input name="phone" value="{{ user.phone or '' }}" placeholder="08xxxxxxxx"></div>
+      <button class="btn primary" type="submit">Save changes</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <h2>Change password</h2>
+    <form method="post" action="{{ url_for('auth.change_password') }}">
+      <div class="field"><label>Current password</label><input name="old" type="password" required></div>
+      <div class="form-row">
+        <div class="field"><label>New password</label><input name="new" type="password" minlength="6" required></div>
+        <div class="field"><label>Confirm new</label><input name="confirm" type="password" minlength="6" required></div>
+      </div>
+      <button class="btn" type="submit">Change password</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <h2>Delete account</h2>
+    <p class="muted">Removes your account, bookings and tickets (MySQL) and your cart, reviews, watchlist and notifications (MongoDB).</p>
+    <form method="post" action="{{ url_for('auth.delete_account') }}" onsubmit="return confirm('Delete your account permanently?')">
+      <button class="btn danger" type="submit">Delete my account</button>
+    </form>
+  </div>
+</div>
+{% endblock %}
