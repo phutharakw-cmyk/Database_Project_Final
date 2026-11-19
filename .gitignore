@@ -1,0 +1,16 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+.pytest_cache/
+.DS_Store
+.idea/
+.vscode/
+
+# user uploads (keep seed posters + folder placeholders)
+static/uploads/posters/*
+!static/uploads/posters/seed_*.png
+!static/uploads/posters/.gitkeep
+static/uploads/avatars/*
+!static/uploads/avatars/.gitkeep
