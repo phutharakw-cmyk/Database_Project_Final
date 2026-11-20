@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% from "_macros.html" import poster, status_chip, pay_label %}
+{% block title %}Booking #{{ b.booking_id }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><a class="link small" href="{{ url_for('booking.my_bookings') }}">← My bookings</a><h1>Booking #{{ b.booking_id }}</h1></div>
+  {{ status_chip(b.status) }}
+</div>
+{% if is_new %}<div class="flash success" style="margin-bottom:1rem">🎉 Transaction committed. Your seats are reserved, your cart was cleared and a notification was sent.</div>{% endif %}
+<div class="ticket">
+  <div class="row" style="align-items:flex-start">
+    <div style="width:120px">{{ poster(b) }}</div>
+    <div class="stack" style="flex:1">
+      <div><h2 style="margin:0">{{ b.movie_title }}</h2><div class="muted">{{ b.start_time | dt }} · {{ b.hall }}</div></div>
+      <div>
+        {% if b.tickets %}
+          {% for t in b.tickets %}<span class="seat-pill">{{ t.seat_label }}</span>{% endfor %}
+        {% else %}
+          <span class="muted">Released seats:</span> {% for s in (b.seats or '').split(', ') if s %}<span class="seat-pill grey">{{ s }}</span>{% endfor %}
+        {% endif %}
+      </div>
+      <div class="grid grid-3 small">
+        <div><div class="muted">Total</div><strong>{{ b.total_amount | baht }}</strong></div>
+        <div><div class="muted">Payment</div><strong>{{ pay_label(b.payment_method) }}</strong></div>
+        <div><div class="muted">Booked at</div><strong>{{ b.created_at | dt('%d %b %Y %H:%M') }}</strong></div>
+      </div>
+      {% if b.cancelled_at %}<div class="small muted">Cancelled at {{ b.cancelled_at | dt('%d %b %Y %H:%M') }}</div>{% endif %}
+    </div>
+  </div>
+</div>
+{% if b.status == 'confirmed' %}
+<div class="card" style="margin-top:1rem">
+  <div class="row between">
+    <form class="inline-form" method="post" action="{{ url_for('booking.booking_payment', booking_id=b.booking_id) }}">
+      <label style="margin:0">Payment</label>
+      <select name="payment_method">{% for m in methods %}<option value="{{ m }}" {{ 'selected' if m == b.payment_method }}>{{ pay_label(m) }}</option>{% endfor %}</select>
+      <button class="btn sm" type="submit">Update</button>
+    </form>
+    <form method="post" action="{{ url_for('booking.booking_cancel', booking_id=b.booking_id) }}" onsubmit="return confirm('Cancel this booking?')">
+      <button class="btn danger" type="submit">Cancel booking</button>
+    </form>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

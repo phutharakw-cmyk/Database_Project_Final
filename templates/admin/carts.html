@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% from "_macros.html" import confirm_form %}
+{% block title %}Admin · Carts{% endblock %}
+{% block content %}
+{% include "admin/_nav.html" %}
+<div class="page-head"><h1>Active carts</h1><span class="tag-nosql">MongoDB · carts</span></div>
+<div class="card table-wrap">
+  <table>
+    <thead><tr><th>Customer</th><th>Showtime</th><th>Seats</th><th>Total</th><th>Updated</th><th></th></tr></thead>
+    <tbody>
+    {% for c in carts %}
+      <tr>
+        <td>{{ names.get(c.user_id, '(deleted user)') }}</td>
+        <td>#{{ c.showtime_id }}</td>
+        <td>{% for it in c["items"] %}<span class="seat-pill">{{ it.seat_label }}</span>{% endfor %}</td>
+        <td>{{ c.total | baht }}</td>
+        <td class="small">{{ c.updated_at | dt('%d %b %H:%M') }}</td>
+        <td>{{ confirm_form(url_for('admin.cart_clear', user_id=c.user_id), 'Clear', 'Clear this cart?') }}</td>
+      </tr>
+    {% else %}<tr><td colspan="6" class="empty">No active carts.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
