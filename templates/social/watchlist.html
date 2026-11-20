@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% from "_macros.html" import poster, status_chip %}
+{% block title %}Watchlist{% endblock %}
+{% block content %}
+<div class="page-head"><h1>My watchlist</h1><span class="tag-nosql">MongoDB · watchlists</span></div>
+{% if items %}
+<div class="grid grid-2">
+  {% for it in items %}
+  <div class="card row" style="align-items:flex-start">
+    <a href="{{ url_for('movies.detail', movie_id=it.movie_id) }}" style="width:90px">{{ poster(it) }}</a>
+    <div style="flex:1" class="stack">
+      <div>
+        <a href="{{ url_for('movies.detail', movie_id=it.movie_id) }}"><strong>{{ it.movie_title }}</strong></a>
+        <div class="chips">{{ status_chip(it.status) }}<span class="chip">{{ it.genre }}</span></div>
+        <div class="small muted">Added {{ it.added_at | dt('%d %b %Y') }}</div>
+      </div>
+      <form method="post" action="{{ url_for('social.watchlist_note', movie_id=it.movie_id) }}" class="inline-form">
+        <input name="note" value="{{ it.note }}" placeholder="Add a note…" maxlength="300" style="flex:1">
+        <button class="btn sm" type="submit">Save note</button>
+      </form>
+      <form method="post" action="{{ url_for('social.watchlist_remove', movie_id=it.movie_id) }}">
+        <input type="hidden" name="next" value="{{ url_for('social.watchlist', _external=True) }}">
+        <button class="btn danger sm" type="submit">Remove</button>
+      </form>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="card empty"><p>Your watchlist is empty.</p><a class="btn primary" href="{{ url_for('movies.index', status='') }}">Browse movies</a></div>
+{% endif %}
+{% endblock %}
