@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% from "_macros.html" import stars, confirm_form %}
+{% block title %}Admin · Reviews{% endblock %}
+{% block content %}
+{% include "admin/_nav.html" %}
+<div class="page-head"><h1>Reviews moderation</h1><span class="tag-nosql">MongoDB · reviews</span></div>
+<div class="card table-wrap">
+  <table>
+    <thead><tr><th>Movie</th><th>User</th><th>Rating</th><th>Comment</th><th>Date</th><th></th></tr></thead>
+    <tbody>
+    {% for r in reviews %}
+      <tr>
+        <td><a class="link" href="{{ url_for('movies.detail', movie_id=r.movie_id) }}">{{ r.movie_title }}</a></td>
+        <td>{{ r.user_name }}</td>
+        <td>{{ stars(r.rating) }}</td>
+        <td>{{ r.comment }}</td>
+        <td class="small">{{ r.created_at | dt('%d %b %Y %H:%M') }}</td>
+        <td>{{ confirm_form(url_for('admin.review_delete', review_id=r.id), 'Delete', 'Remove this review?') }}</td>
+      </tr>
+    {% else %}<tr><td colspan="6" class="empty">No reviews.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

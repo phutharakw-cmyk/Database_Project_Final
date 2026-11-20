@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from "_macros.html" import poster, status_chip %}
+{% from "_macros.html" import poster, stars, status_chip %}
 {% block title %}{{ movie.title }}{% endblock %}
 {% block content %}
 {% include "movies/_style.html" %}
@@ -15,7 +15,17 @@
       <span class="chip">{{ movie.genre }}</span>
       <span class="chip">{{ movie.duration_min // 60 }}h {{ '%02d' % (movie.duration_min % 60) }}m</span>
     </div>
+    <div style="margin-top:.6rem">{{ stars(avg.average) }} <strong>{{ avg.average }}</strong> <span class="muted">/ 5 from {{ avg.count }} review(s)</span></div>
     {% if movie.description %}<p style="margin-top:1rem; white-space:pre-line">{{ movie.description }}</p>{% endif %}
+    {% if current_user %}
+      <div style="margin-top:1rem">
+      {% if in_watchlist %}
+        <form method="post" action="{{ url_for('social.watchlist_remove', movie_id=movie.movie_id) }}"><button class="btn">✓ In watchlist — remove</button></form>
+      {% else %}
+        <form method="post" action="{{ url_for('social.watchlist_add', movie_id=movie.movie_id) }}"><button class="btn">＋ Add to watchlist</button></form>
+      {% endif %}
+      </div>
+    {% endif %}
     {% if current_user and current_user.role == 'admin' %}
       <div class="row" style="gap:.5rem; margin-top:1rem">
         <a class="btn sm" href="{{ url_for('movies.admin_edit_movie', movie_id=movie.movie_id) }}">Edit movie</a>
@@ -52,5 +62,48 @@
   {% else %}
     <p class="muted">No upcoming showtimes.</p>
   {% endif %}
+</div>
+
+<div class="card" id="reviews" style="margin-top:1.2rem">
+  <div class="page-head" style="margin-bottom:.6rem"><h2 style="margin:0">Reviews</h2><span class="tag-nosql">MongoDB · reviews</span></div>
+
+  {% if current_user and not my_review %}
+  <form method="post" action="{{ url_for('social.add_review', movie_id=movie.movie_id) }}" style="margin-bottom:1rem">
+    <div class="field" style="max-width:180px"><label>Your rating</label>
+      <select name="rating">{% for i in range(5, 0, -1) %}<option value="{{ i }}">{{ '★' * i }} ({{ i }})</option>{% endfor %}</select>
+    </div>
+    <div class="field"><label>Comment</label><textarea name="comment" maxlength="1000" placeholder="What did you think?"></textarea></div>
+    <button class="btn primary" type="submit">Post review</button>
+  </form>
+  {% elif not current_user %}
+    <p class="muted"><a class="link" href="{{ url_for('auth.login', next=request.path) }}">Log in</a> to write a review.</p>
+  {% endif %}
+
+  {% for r in reviews %}
+  <div class="review">
+    <div class="row between">
+      <div><strong>{{ r.user_name }}</strong> {{ stars(r.rating) }}</div>
+      <span class="small muted">{{ r.created_at | dt('%d %b %Y %H:%M') }}{% if r.updated_at and r.updated_at != r.created_at %} · edited{% endif %}</span>
+    </div>
+    <p style="margin:.3rem 0">{{ r.comment }}</p>
+    {% if current_user and r.user_id == current_user.user_id %}
+      <details>
+        <summary class="small">Edit / delete my review</summary>
+        <form method="post" action="{{ url_for('social.edit_review', review_id=r.id) }}" style="margin-top:.6rem">
+          <div class="field" style="max-width:180px"><label>Rating</label>
+            <select name="rating">{% for i in range(5, 0, -1) %}<option value="{{ i }}" {{ 'selected' if i == r.rating }}>{{ '★' * i }} ({{ i }})</option>{% endfor %}</select>
+          </div>
+          <div class="field"><textarea name="comment" maxlength="1000">{{ r.comment }}</textarea></div>
+          <button class="btn primary sm" type="submit">Save</button>
+        </form>
+        <form method="post" action="{{ url_for('social.delete_review', review_id=r.id) }}" onsubmit="return confirm('Delete your review?')" style="margin-top:.4rem">
+          <button class="btn danger sm" type="submit">Delete review</button>
+        </form>
+      </details>
+    {% endif %}
+  </div>
+  {% else %}
+    <p class="muted">No reviews yet.</p>
+  {% endfor %}
 </div>
 {% endblock %}

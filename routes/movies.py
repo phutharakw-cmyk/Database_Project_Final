@@ -4,9 +4,11 @@ from itertools import groupby
 from flask import Blueprint, render_template, request, redirect, url_for, abort, current_app
 from werkzeug.routing import BuildError
 
-from routes import admin_required, run
+from routes import admin_required, run, current_user_id
 from services import movies as movie_svc
 from services import showtimes as show_svc
+from services import reviews as review_svc
+from services import watchlists as wl_svc
 
 bp = Blueprint("movies", __name__)
 
@@ -61,7 +63,14 @@ def detail(movie_id):
     for s in shows:
         s["book_url"] = _seat_map_url(s["showtime_id"])
     days = [(day, list(items)) for day, items in groupby(shows, key=lambda s: s["start_time"].date())]
-    return render_template("movies/detail.html", movie=movie, days=days)
+    # MongoDB: reviews + average rating + watchlist state
+    reviews = review_svc.list_reviews(movie_id)
+    avg = review_svc.get_average_rating(movie_id)
+    uid = current_user_id()
+    my_review = next((r for r in reviews if r["user_id"] == uid), None) if uid else None
+    in_watchlist = wl_svc.is_in_watchlist(uid, movie_id)["in_watchlist"] if uid else False
+    return render_template("movies/detail.html", movie=movie, days=days, reviews=reviews,
+                           avg=avg, my_review=my_review, in_watchlist=in_watchlist)
 
 
 @bp.route("/admin/movies", methods=["GET", "POST"])
