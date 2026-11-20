@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% from "_macros.html" import poster, status_chip %}
+{% block title %}{{ movie.title }}{% endblock %}
+{% block content %}
+{% include "movies/_style.html" %}
+<p class="small"><a class="link" href="{{ url_for('movies.index') }}">← All movies</a></p>
+
+<div class="card movie-hero">
+  {{ poster(movie) }}
+  <div>
+    <h1 style="margin-top:0">{{ movie.title }}</h1>
+    <div class="chips">
+      {{ status_chip(movie.status) }}
+      <span class="chip">{{ movie.rating }}</span>
+      <span class="chip">{{ movie.genre }}</span>
+      <span class="chip">{{ movie.duration_min // 60 }}h {{ '%02d' % (movie.duration_min % 60) }}m</span>
+    </div>
+    {% if movie.description %}<p style="margin-top:1rem; white-space:pre-line">{{ movie.description }}</p>{% endif %}
+    {% if current_user and current_user.role == 'admin' %}
+      <div class="row" style="gap:.5rem; margin-top:1rem">
+        <a class="btn sm" href="{{ url_for('movies.admin_edit_movie', movie_id=movie.movie_id) }}">Edit movie</a>
+        <a class="btn sm" href="{{ url_for('movies.admin_showtimes', movie_id=movie.movie_id) }}">Manage showtimes</a>
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="card" style="margin-top:1.2rem">
+  <div class="page-head" style="margin-bottom:.6rem"><h2 style="margin:0">Showtimes</h2><span class="tag-sql">MySQL · showtimes</span></div>
+  {% if days %}
+    {% for day, shows in days %}
+      <div class="day-block">
+        <h3>{{ day.strftime('%A %d %B %Y') }}</h3>
+        <div class="show-list">
+          {% for s in shows %}
+            {% set label %}
+              <strong>{{ s.start_time | dt('%H:%M') }}</strong>
+              <span class="small">{{ s.hall }} · {{ s.price | baht }}</span>
+              <span class="small muted">ends {{ s.end_time | dt('%H:%M') }}</span>
+            {% endset %}
+            {% if s.book_url %}
+              <a class="show-btn" href="{{ s.book_url }}" title="Choose seats">{{ label }}</a>
+            {% else %}
+              <span class="show-btn disabled" title="Booking is not available yet">{{ label }}</span>
+            {% endif %}
+          {% endfor %}
+        </div>
+      </div>
+    {% endfor %}
+  {% elif movie.status == 'coming_soon' %}
+    <p class="muted">Coming soon. Showtimes will be announced.</p>
+  {% else %}
+    <p class="muted">No upcoming showtimes.</p>
+  {% endif %}
+</div>
+{% endblock %}

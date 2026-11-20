@@ -1,0 +1,25 @@
+{# Small extra styles for the movie screens (Owner: Phoom). Uses the shared classes from style.css where possible. #}
+<style>
+  .movie-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(190px, 1fr)); gap:1.2rem; }
+  .movie-card { display:flex; flex-direction:column; text-decoration:none; color:inherit; padding:0; overflow:hidden; }
+  .movie-card .poster, .movie-card .poster-ph { width:100%; aspect-ratio:2/3; object-fit:cover; display:flex; align-items:center; justify-content:center; text-align:center; }
+  .movie-card .body { padding:.7rem .8rem .9rem; }
+  .movie-card h3 { margin:.1rem 0 .3rem; font-size:1rem; }
+  .movie-hero { display:grid; grid-template-columns:240px 1fr; gap:1.5rem; align-items:start; }
+  .movie-hero .poster, .movie-hero .poster-ph { width:100%; aspect-ratio:2/3; object-fit:cover; border-radius:8px; display:flex; align-items:center; justify-content:center; }
+  .poster-box { max-width:200px; margin-bottom:.8rem; }
+  .poster-box .poster, .poster-box .poster-ph { width:100%; aspect-ratio:2/3; object-fit:cover; border-radius:8px; display:flex; align-items:center; justify-content:center; }
+  .thumb { width:44px; height:66px; object-fit:cover; border-radius:4px; }
+  .thumb.poster-ph { display:flex; align-items:center; justify-content:center; font-size:.55rem; overflow:hidden; text-align:center; }
+  .day-block { margin-bottom:1rem; }
+  .day-block h3 { margin:.2rem 0 .5rem; font-size:.95rem; }
+  .show-list { display:flex; flex-wrap:wrap; gap:.6rem; }
+  .show-btn { display:inline-flex; flex-direction:column; align-items:flex-start; padding:.5rem .8rem; border:1px solid currentColor; border-radius:8px; text-decoration:none; color:inherit; min-width:110px; }
+  .show-btn strong { font-size:1.05rem; }
+  .show-btn.disabled { opacity:.55; }
+  .tabs { display:flex; gap:.4rem; flex-wrap:wrap; }
+  table.list { width:100%; border-collapse:collapse; }
+  table.list th, table.list td { padding:.5rem .6rem; text-align:left; border-bottom:1px solid rgba(127,127,127,.25); vertical-align:middle; }
+  table.list td.actions { white-space:nowrap; text-align:right; }
+  @media (max-width:640px){ .movie-hero { grid-template-columns:1fr; } .movie-hero .poster, .movie-hero .poster-ph { max-width:220px; } }
+</style>
