@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Edit showtime{% endblock %}
+{% block content %}
+<p class="small"><a class="link" href="{{ url_for('movies.admin_showtimes', movie_id=show.movie_id) }}">← Showtimes · {{ show.title }}</a></p>
+<div class="page-head"><h1>Edit showtime</h1><span class="tag-sql">MySQL · showtimes</span></div>
+
+<div class="card" style="max-width:640px">
+  {% if show.seats_sold %}
+    <div class="flash warning">{{ show.seats_sold }} ticket(s) already sold. Only the price can be changed
+      (tickets keep the price they were bought at).</div>
+  {% endif %}
+  <form method="post">
+    {% if show.seats_sold %}
+      <div class="field"><label>Movie</label><input value="{{ show.title }}" disabled></div>
+      <div class="form-row">
+        <div class="field"><label>Hall</label><input value="{{ show.hall }}" disabled></div>
+        <div class="field"><label>Start time</label><input value="{{ show.start_time | dt('%Y-%m-%d %H:%M') }}" disabled></div>
+      </div>
+    {% else %}
+      <div class="field"><label>Movie</label>
+        <select name="movie_id">
+          {% for m in movies %}
+            <option value="{{ m.movie_id }}" {{ 'selected' if (form.movie_id or show.movie_id) | string == m.movie_id | string }}>{{ m.title }} ({{ m.duration_min }} min)</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-row">
+        <div class="field"><label>Hall</label><input name="hall" maxlength="20" required value="{{ form.hall or show.hall }}"></div>
+        <div class="field"><label>Start time</label><input name="start_time" type="datetime-local" required
+             value="{{ form.start_time or show.start_time.strftime('%Y-%m-%dT%H:%M') }}"></div>
+      </div>
+    {% endif %}
+    <div class="field"><label>Price (฿)</label><input name="price" type="number" min="0" step="0.01" required value="{{ form.price or show.price }}"></div>
+    <button class="btn primary" type="submit">Save changes</button>
+    <a class="btn" href="{{ url_for('movies.admin_showtimes', movie_id=show.movie_id) }}">Cancel</a>
+  </form>
+</div>
+{% endblock %}

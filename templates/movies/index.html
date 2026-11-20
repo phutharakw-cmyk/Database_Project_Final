@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% from "_macros.html" import poster, status_chip %}
+{% block title %}Movies{% endblock %}
+{% block content %}
+{% include "movies/_style.html" %}
+<div class="page-head">
+  <h1>Movies</h1><span class="tag-sql">MySQL · movies + showtimes</span>
+</div>
+
+<div class="card row" style="justify-content:space-between; flex-wrap:wrap; gap:.8rem; margin-bottom:1.2rem">
+  <div class="tabs">
+    <a class="btn sm {{ 'primary' if not status }}" href="{{ url_for('movies.index', q=q or None) }}">All</a>
+    <a class="btn sm {{ 'primary' if status == 'now_showing' }}" href="{{ url_for('movies.index', status='now_showing', q=q or None) }}">Now showing</a>
+    <a class="btn sm {{ 'primary' if status == 'coming_soon' }}" href="{{ url_for('movies.index', status='coming_soon', q=q or None) }}">Coming soon</a>
+  </div>
+  <form method="get" class="inline-form">
+    {% if status %}<input type="hidden" name="status" value="{{ status }}">{% endif %}
+    <input name="q" value="{{ q }}" placeholder="Search title or genre">
+    <button class="btn sm" type="submit">Search</button>
+  </form>
+</div>
+
+{% if movies %}
+  <div class="movie-grid">
+    {% for m in movies %}
+      <a class="card movie-card" href="{{ url_for('movies.detail', movie_id=m.movie_id) }}">
+        {{ poster(m) }}
+        <div class="body">
+          <h3>{{ m.title }}</h3>
+          <div class="chips">{{ status_chip(m.status) }}<span class="chip">{{ m.rating }}</span></div>
+          <div class="small muted" style="margin-top:.35rem">{{ m.genre }} · {{ m.duration_min }} min</div>
+          {% if m.next_showtime %}
+            <div class="small" style="margin-top:.25rem">Next: {{ m.next_showtime | dt('%a %d %b, %H:%M') }}</div>
+          {% elif m.status == 'now_showing' %}
+            <div class="small muted" style="margin-top:.25rem">No upcoming showtimes</div>
+          {% endif %}
+        </div>
+      </a>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="card empty">
+    <p>No movies found{% if q %} for "{{ q }}"{% endif %}.</p>
+    {% if q or status %}<a class="btn" href="{{ url_for('movies.index') }}">Show all movies</a>{% endif %}
+  </div>
+{% endif %}
+{% endblock %}
