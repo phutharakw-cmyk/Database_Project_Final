@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% from "_macros.html" import poster, pay_label %}
+{% block title %}Cart{% endblock %}
+{% block content %}
+<div class="page-head"><h1>Your cart</h1><span class="tag-nosql">MongoDB · carts</span></div>
+
+{% if not cart["items"] %}
+  <div class="card empty">
+    <p>Your cart is empty.</p>
+    <a class="btn primary" href="{{ url_for('movies.index') }}">Browse movies</a>
+  </div>
+{% else %}
+<div class="grid grid-2">
+  <div class="card">
+    <div class="row" style="align-items:flex-start">
+      <div style="width:90px">{{ poster(st, 'poster') }}</div>
+      <div>
+        <h2 style="margin-bottom:.2rem">{{ st.movie_title }}</h2>
+        <div class="muted">{{ st.start_time | dt }}</div>
+        <div class="muted">{{ st.hall }} · {{ st.price | baht }} / seat</div>
+        <a class="link small" href="{{ url_for('booking.seat_map', showtime_id=st.showtime_id) }}">Change seats</a>
+      </div>
+    </div>
+    <table style="margin-top:1rem">
+      <thead><tr><th>Seat</th><th>Price</th><th></th></tr></thead>
+      <tbody>
+      {% for it in cart["items"] %}
+        <tr>
+          <td><span class="seat-pill {{ 'warn' if it.seat_label in taken }}">{{ it.seat_label }}</span>
+            {% if it.seat_label in taken %}<span class="small" style="color:#ffd68a">already booked by someone else</span>{% endif %}</td>
+          <td>{{ it.price | baht }}</td>
+          <td style="text-align:right">
+            <form class="inline" method="post" action="{{ url_for('booking.cart_remove') }}">
+              <input type="hidden" name="seat_label" value="{{ it.seat_label }}">
+              <button class="btn sm" type="submit">Remove</button>
+            </form>
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    <form method="post" action="{{ url_for('booking.cart_clear') }}" style="margin-top:.8rem" onsubmit="return confirm('Clear your cart?')">
+      <button class="btn danger sm" type="submit">Clear cart</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <h2>Checkout</h2>
+    <div class="row between"><span class="muted">Seats</span><strong>{{ cart["items"] | length }}</strong></div>
+    <div class="row between"><span class="muted">Total</span><strong style="font-size:1.4rem">{{ cart.total | baht }}</strong></div>
+    <form method="post" action="{{ url_for('booking.cart_confirm') }}" style="margin-top:1rem">
+      <div class="field"><label>Payment method</label>
+        <select name="payment_method">{% for m in methods %}<option value="{{ m }}">{{ pay_label(m) }}</option>{% endfor %}</select>
+      </div>
+      <button class="btn primary block" type="submit">Confirm booking</button>
+    </form>
+    {% if taken %}
+      <div class="flash warning small" style="margin-top:1rem">Some seats were booked by another customer. If you confirm, the SQL transaction will fail and roll back — nothing will be booked. Remove those seats first.</div>
+    {% endif %}
+    <p class="small muted" style="margin-top:1rem">Seats in your cart are not reserved until you confirm. Confirming runs one SQL transaction: if any seat is already taken, the whole booking is rolled back.</p>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
