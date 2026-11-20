@@ -1,19 +1,3 @@
-"""
-showtimes.py - SQL table `showtimes` (Owner: Phoom)
-
-create_showtime(movie_id, hall, start_time, price)
-list_showtimes(movie_id)
-get_showtime(showtime_id)
-update_showtime(showtime_id, **fields)
-delete_showtime(showtime_id)
-
-Rules
-  * a hall cannot run two shows at once: [start, start + duration + CLEANUP_MIN)
-    must not overlap another show in the same hall
-  * new / moved showtimes must start in the future
-  * once tickets are sold only the price can change, and the showtime
-    cannot be deleted (bookings -> showtimes is ON DELETE RESTRICT)
-"""
 from datetime import datetime, timedelta
 from decimal import Decimal, InvalidOperation
 
@@ -23,8 +7,8 @@ from db import query_all, query_one, execute
 from services import require_text, to_int
 from services.movies import get_movie
 
-CLEANUP_MIN = 15  # minutes between two shows in the same hall
-MAX_PRICE = Decimal("999999.99")  # DECIMAL(8,2)
+CLEANUP_MIN = 15
+MAX_PRICE = Decimal("999999.99")
 
 _SELECT = """
     SELECT s.showtime_id, s.movie_id, s.hall, s.start_time, s.price, s.created_at,
@@ -36,9 +20,7 @@ _SELECT = """
 """
 
 
-# ---------------------------------------------------------------- validation
 def parse_start_time(value):
-    """Accept a datetime, 'YYYY-MM-DDTHH:MM' (HTML datetime-local) or 'YYYY-MM-DD HH:MM[:SS]'."""
     if isinstance(value, datetime):
         return value.replace(second=0, microsecond=0)
     text = (value or "").strip().replace("T", " ")
@@ -71,7 +53,6 @@ def _clean_price(value):
 
 
 def _check_hall_free(hall, start, duration_min, ignore_id=0):
-    """Raise ValueError if another show in `hall` overlaps the new time slot."""
     end = start + timedelta(minutes=duration_min + CLEANUP_MIN)
     clash = query_one(
         """SELECT s.showtime_id, s.start_time, m.title
@@ -88,7 +69,6 @@ def _check_hall_free(hall, start, duration_min, ignore_id=0):
                          f"between them)")
 
 
-# ---------------------------------------------------------------- CRUD
 def create_showtime(movie_id, hall, start_time, price):
     movie = get_movie(movie_id)
     if movie["status"] == "ended":
@@ -102,13 +82,12 @@ def create_showtime(movie_id, hall, start_time, price):
             "INSERT INTO showtimes (movie_id, hall, start_time, price) VALUES (%s, %s, %s, %s)",
             (movie["movie_id"], hall, start, price),
         )
-    except pymysql.err.IntegrityError:  # UNIQUE (hall, start_time) - race with another admin
+    except pymysql.err.IntegrityError:
         raise ValueError(f"{hall} already has a show at that time")
     return get_showtime(new_id)
 
 
 def list_showtimes(movie_id=None, upcoming_only=False):
-    """Showtimes of one movie (or every movie when movie_id is None), earliest first."""
     where, params = [], []
     if movie_id is not None:
         where.append("s.movie_id = %s")
@@ -128,7 +107,6 @@ def get_showtime(showtime_id):
 
 
 def update_showtime(showtime_id, **fields):
-    """update_showtime(5, price=250) or (5, hall="Hall 2", start_time="2026-12-01 18:00")."""
     show = get_showtime(showtime_id)
     allowed = {"movie_id", "hall", "start_time", "price"}
     unknown = set(fields) - allowed
@@ -170,6 +148,6 @@ def delete_showtime(showtime_id):
                          "and cannot be deleted")
     try:
         execute("DELETE FROM showtimes WHERE showtime_id = %s", (show["showtime_id"],))
-    except pymysql.err.IntegrityError:  # a booking arrived in between
+    except pymysql.err.IntegrityError:
         raise ValueError("This showtime has bookings and cannot be deleted")
     return {"showtime_id": show["showtime_id"], "deleted": True}

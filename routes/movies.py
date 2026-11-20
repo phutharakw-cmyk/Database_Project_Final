@@ -1,18 +1,3 @@
-"""
-Movie list / Movie detail + showtimes / Admin - movies & showtimes (Owner: Phoom)
-
-Public
-  /                                movies.index
-  /movies/<id>                     movies.detail
-Admin
-  /admin/movies                    movies.admin_movies        (list + add)
-  /admin/movies/<id>/edit          movies.admin_edit_movie
-  /admin/movies/<id>/poster        movies.admin_upload_poster
-  /admin/movies/<id>/delete        movies.admin_delete_movie
-  /admin/movies/<id>/showtimes     movies.admin_showtimes     (list + add)
-  /admin/showtimes/<id>/edit       movies.admin_edit_showtime
-  /admin/showtimes/<id>/delete     movies.admin_delete_showtime
-"""
 from datetime import datetime
 from itertools import groupby
 
@@ -41,7 +26,6 @@ def _showtime_or_404(showtime_id):
 
 
 def _seat_map_url(showtime_id):
-    """Link to the booking screen if that blueprint is registered (owned by another member)."""
     if "booking.seat_map" not in current_app.view_functions:
         return None
     try:
@@ -55,7 +39,6 @@ def _movie_form():
     return {k: f.get(k) for k in ("title", "genre", "duration", "rating", "description", "status")}
 
 
-# ================================================================ public
 @bp.route("/")
 @bp.route("/movies")
 def index():
@@ -81,7 +64,6 @@ def detail(movie_id):
     return render_template("movies/detail.html", movie=movie, days=days)
 
 
-# ================================================================ admin - movies
 @bp.route("/admin/movies", methods=["GET", "POST"])
 @admin_required
 def admin_movies():
@@ -106,7 +88,7 @@ def admin_edit_movie(movie_id):
         _, ok = run(lambda: movie_svc.update_movie(movie_id, **_movie_form()), "Movie updated")
         if ok:
             return redirect(url_for("movies.admin_movies"))
-        movie = {**movie, **request.form}  # keep what the admin typed
+        movie = {**movie, **request.form}
     return render_template("movies/admin_movie_form.html", movie=movie,
                            ratings=movie_svc.RATINGS, statuses=movie_svc.STATUSES)
 
@@ -125,7 +107,6 @@ def admin_delete_movie(movie_id):
     return redirect(url_for("movies.admin_movies"))
 
 
-# ================================================================ admin - showtimes
 @bp.route("/admin/movies/<int:movie_id>/showtimes", methods=["GET", "POST"])
 @admin_required
 def admin_showtimes(movie_id):
@@ -148,7 +129,7 @@ def admin_edit_showtime(showtime_id):
     if request.method == "POST":
         f = request.form
         fields = {"price": f.get("price")}
-        if not show["seats_sold"]:  # locked fields are not in the form when seats are sold
+        if not show["seats_sold"]:
             fields.update(movie_id=f.get("movie_id"), hall=f.get("hall"),
                           start_time=f.get("start_time"))
         updated, ok = run(lambda: show_svc.update_showtime(showtime_id, **fields), "Showtime updated")

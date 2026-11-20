@@ -1,13 +1,3 @@
-"""
-movies.py - SQL table `movies` (Owner: Phoom)
-
-create_movie(title, genre, duration, rating, description)
-list_movies(status=None)
-get_movie(movie_id)
-update_movie(movie_id, **fields)
-delete_movie(movie_id)
-save_poster(movie_id, file_path)
-"""
 from db import get_mysql, get_mongo, query_all, query_one, execute
 from services import require_text, to_int
 from services.uploads import save_image, delete_image
@@ -15,7 +5,6 @@ from services.uploads import save_image, delete_image
 STATUSES = ("now_showing", "coming_soon", "ended")
 RATINGS = ("G", "PG", "PG-13", "R", "NC-17")
 
-# columns + "next upcoming showtime" summary used by list/get
 _SELECT = """
     SELECT m.movie_id, m.title, m.genre, m.duration_min, m.rating, m.description,
            m.poster_path, m.status, m.created_at,
@@ -27,7 +16,6 @@ _SELECT = """
 """
 
 
-# ---------------------------------------------------------------- validation
 def _clean_title(value):
     return require_text(value, "Title", 200)
 
@@ -64,7 +52,6 @@ def _clean_description(value):
     return value or None
 
 
-# form field name -> (db column, cleaner)
 _FIELDS = {
     "title": ("title", _clean_title),
     "genre": ("genre", _clean_genre),
@@ -76,7 +63,6 @@ _FIELDS = {
 }
 
 
-# ---------------------------------------------------------------- CRUD
 def create_movie(title, genre, duration, rating, description, status="now_showing"):
     _, new_id = execute(
         """INSERT INTO movies (title, genre, duration_min, rating, description, status)
@@ -88,7 +74,6 @@ def create_movie(title, genre, duration, rating, description, status="now_showin
 
 
 def list_movies(status=None):
-    """All movies (optionally one status), now showing first, with next showtime info."""
     sql, params = _SELECT, []
     if status:
         sql += " WHERE m.status = %s"
@@ -107,9 +92,8 @@ def get_movie(movie_id):
 
 
 def update_movie(movie_id, **fields):
-    """update_movie(3, title="New", duration=120, status="ended") - only given fields change."""
     movie = get_movie(movie_id)
-    changes = {}  # db column -> cleaned value
+    changes = {}
     for key, value in fields.items():
         if key not in _FIELDS:
             raise ValueError(f"Unknown movie field: {key}")
@@ -117,18 +101,13 @@ def update_movie(movie_id, **fields):
         changes[column] = cleaner(value)
     if not changes:
         return movie
-    assignments = ", ".join(f"{column}=%s" for column in changes)  # names come from _FIELDS only
+    assignments = ", ".join(f"{column}=%s" for column in changes)
     execute(f"UPDATE movies SET {assignments} WHERE movie_id=%s",
             (*changes.values(), movie["movie_id"]))
     return get_movie(movie["movie_id"])
 
 
 def delete_movie(movie_id):
-    """
-    Delete a movie and its showtimes (ON DELETE CASCADE).
-    Refused if any showtime has bookings: bookings -> showtimes is RESTRICT,
-    so booking history is never lost. Mark the movie 'ended' instead.
-    """
     movie = get_movie(movie_id)
     mid = movie["movie_id"]
     conn = get_mysql()
@@ -149,18 +128,17 @@ def delete_movie(movie_id):
     finally:
         conn.close()
 
-    try:  # MongoDB documents that point at this movie
+    try:
         mongo = get_mongo()
         for coll in ("reviews", "watchlists"):
             mongo[coll].delete_many({"movie_id": mid})
     except Exception:
-        pass  # SQL delete already done; Mongo leftovers are harmless
+        pass
     delete_image(movie.get("poster_path"))
     return {"movie_id": mid, "deleted": True}
 
 
 def save_poster(movie_id, file_path):
-    """file_path = uploaded FileStorage or a local file path."""
     movie = get_movie(movie_id)
     new_path = save_image(file_path, "posters")
     execute("UPDATE movies SET poster_path=%s WHERE movie_id=%s", (new_path, movie["movie_id"]))
