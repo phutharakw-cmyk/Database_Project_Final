@@ -5,6 +5,7 @@
 {% set here = request.endpoint.split('.')[1].split('_')[0].rstrip('s') %}
 <nav class="admin-nav">
   {% for ep, label in links %}
-    <a href="{{ url_for(ep) }}" class="{{ 'active' if ep.split('.')[1].split('_')[0].rstrip('s') == here }}">{{ label }}</a>
+    <a href="{{ url_for(ep) }}" class="{{ 'active' if request.path == url_for(ep)
+          or ep.split('.')[1].split('_')[0].rstrip('s') == here }}">{{ label }}</a>
   {% endfor %}
 </nav>

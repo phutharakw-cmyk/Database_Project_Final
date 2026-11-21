@@ -2,8 +2,9 @@
 {% from "_macros.html" import poster, status_chip, confirm_form %}
 {% block title %}Admin · Movies{% endblock %}
 {% block content %}
+{% include "admin/_nav.html" %}
 {% include "movies/_style.html" %}
-<div class="page-head"><h1>Admin · Movies</h1><span class="tag-sql">MySQL · movies</span></div>
+<div class="page-head"><h1>Movies</h1><span class="tag-sql">MySQL · movies</span></div>
 
 <div class="card" style="margin-bottom:1.2rem">
   <h2>Add a movie</h2>
