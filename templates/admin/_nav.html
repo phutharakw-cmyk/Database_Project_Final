@@ -1,0 +1,10 @@
+{% set links = [
+  ('admin.dashboard', 'Dashboard'), ('admin.movies', 'Movies'), ('admin.showtimes', 'Showtimes'),
+  ('admin.bookings', 'Bookings'), ('admin.transaction_demo', 'Transaction demo'), ('admin.users', 'Users'),
+  ('admin.reviews', 'Reviews'), ('admin.notifications', 'Notifications'), ('admin.carts', 'Carts')] %}
+{% set here = request.endpoint.split('.')[1].split('_')[0].rstrip('s') %}
+<nav class="admin-nav">
+  {% for ep, label in links %}
+    <a href="{{ url_for(ep) }}" class="{{ 'active' if ep.split('.')[1].split('_')[0].rstrip('s') == here }}">{{ label }}</a>
+  {% endfor %}
+</nav>

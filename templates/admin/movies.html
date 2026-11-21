@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% from "_macros.html" import status_chip, confirm_form %}
+{% block title %}Admin · Movies{% endblock %}
+{% block content %}
+{% include "admin/_nav.html" %}
+<div class="page-head"><h1>Movies</h1><span class="tag-sql">MySQL · movies</span></div>
+
+<details class="card" {{ 'open' if not movies }}>
+  <summary>＋ Add a new movie</summary>
+  <form method="post" enctype="multipart/form-data" style="margin-top:1rem">
+    <div class="form-row">
+      <div class="field"><label>Title</label><input name="title" required maxlength="200"></div>
+      <div class="field"><label>Genre</label>
+        <select name="genre">{% for g in genres %}<option>{{ g }}</option>{% endfor %}</select></div>
+      <div class="field"><label>Duration (min)</label><input name="duration_min" type="number" min="1" max="600" required></div>
+      <div class="field"><label>Rating</label><select name="rating">{% for r in ratings %}<option>{{ r }}</option>{% endfor %}</select></div>
+      <div class="field"><label>Status</label><select name="status">{% for s in statuses %}<option value="{{ s }}">{{ s | replace('_',' ') }}</option>{% endfor %}</select></div>
+    </div>
+    <div class="field"><label>Description</label><textarea name="description"></textarea></div>
+    <div class="field"><label>Poster image (saved to static/uploads/posters)</label><input type="file" name="poster" accept="image/*"></div>
+    <button class="btn primary" type="submit">Create movie</button>
+  </form>
+</details>
+
+<div class="card table-wrap" style="margin-top:1rem">
+  <table>
+    <thead><tr><th></th><th>ID</th><th>Title</th><th>Genre</th><th>Min</th><th>Rating</th><th>Status</th><th>Upcoming</th><th></th></tr></thead>
+    <tbody>
+    {% for m in movies %}
+      <tr>
+        <td>{% if m.poster_path %}<img class="thumb" src="{{ url_for('static', filename=m.poster_path) }}" alt="">{% endif %}</td>
+        <td>{{ m.movie_id }}</td>
+        <td><strong>{{ m.title }}</strong></td>
+        <td>{{ m.genre }}</td><td>{{ m.duration_min }}</td><td>{{ m.rating }}</td>
+        <td>{{ status_chip(m.status) }}</td>
+        <td>{{ m.upcoming_shows }}</td>
+        <td><div class="actions">
+          <a class="btn sm" href="{{ url_for('admin.movie_edit', movie_id=m.movie_id) }}">Edit</a>
+          <a class="btn sm" href="{{ url_for('admin.showtimes', movie_id=m.movie_id) }}">+ Showtime</a>
+          {{ confirm_form(url_for('admin.movie_delete', movie_id=m.movie_id), 'Delete', 'Delete this movie and its showtimes?') }}
+        </div></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

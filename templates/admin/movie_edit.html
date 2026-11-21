@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% from "_macros.html" import poster, confirm_form %}
+{% block title %}Edit {{ movie.title }}{% endblock %}
+{% block content %}
+{% include "admin/_nav.html" %}
+<div class="page-head"><div><a class="link small" href="{{ url_for('admin.movies') }}">← Movies</a><h1>Edit movie #{{ movie.movie_id }}</h1></div></div>
+<div class="detail">
+  <div>{{ poster(movie) }}</div>
+  <div class="stack">
+    <form class="card" method="post" enctype="multipart/form-data">
+      <div class="form-row">
+        <div class="field"><label>Title</label><input name="title" value="{{ movie.title }}" required></div>
+        <div class="field"><label>Genre</label>
+          <select name="genre">{% for g in genres %}<option {{ 'selected' if g == movie.genre }}>{{ g }}</option>{% endfor %}
+            {% if movie.genre not in genres %}<option selected>{{ movie.genre }}</option>{% endif %}</select></div>
+        <div class="field"><label>Duration (min)</label><input name="duration_min" type="number" value="{{ movie.duration_min }}" required></div>
+        <div class="field"><label>Rating</label><select name="rating">{% for r in ratings %}<option {{ 'selected' if r == movie.rating }}>{{ r }}</option>{% endfor %}</select></div>
+        <div class="field"><label>Status</label><select name="status">{% for s in statuses %}<option value="{{ s }}" {{ 'selected' if s == movie.status }}>{{ s | replace('_',' ') }}</option>{% endfor %}</select></div>
+      </div>
+      <div class="field"><label>Description</label><textarea name="description">{{ movie.description or '' }}</textarea></div>
+      <div class="field"><label>Replace poster</label><input type="file" name="poster" accept="image/*"></div>
+      <div class="row between">
+        <button class="btn primary" type="submit">Save</button>
+      </div>
+    </form>
+    {{ confirm_form(url_for('admin.movie_delete', movie_id=movie.movie_id), 'Delete movie', 'Delete this movie?') }}
+    <div class="card">
+      <div class="row between"><h2>Showtimes</h2><a class="btn sm" href="{{ url_for('admin.showtimes', movie_id=movie.movie_id) }}">+ Add showtime</a></div>
+      <table><thead><tr><th>ID</th><th>Start</th><th>Hall</th><th>Price</th><th>Booked</th><th></th></tr></thead><tbody>
+      {% for s in showtimes %}
+        <tr><td>{{ s.showtime_id }}</td><td>{{ s.start_time | dt('%d %b %Y %H:%M') }}</td><td>{{ s.hall }}</td><td>{{ s.price | baht }}</td><td>{{ s.booked_count }}</td>
+          <td><a class="btn sm" href="{{ url_for('admin.showtime_edit', showtime_id=s.showtime_id) }}">Edit</a></td></tr>
+      {% else %}<tr><td colspan="6" class="muted">No showtimes.</td></tr>{% endfor %}
+      </tbody></table>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% from "_macros.html" import confirm_form %}
+{% block title %}Admin · Showtimes{% endblock %}
+{% block content %}
+{% include "admin/_nav.html" %}
+<div class="page-head"><h1>Showtimes</h1><span class="tag-sql">MySQL · showtimes (FK → movies)</span></div>
+
+<details class="card" {{ 'open' if preselect }}>
+  <summary>＋ Add a showtime</summary>
+  <form method="post" style="margin-top:1rem">
+    <div class="form-row">
+      <div class="field"><label>Movie</label>
+        <select name="movie_id" required>{% for m in movies %}<option value="{{ m.movie_id }}" {{ 'selected' if m.movie_id == preselect }}>{{ m.title }}</option>{% endfor %}</select></div>
+      <div class="field"><label>Hall</label><select name="hall">{% for h in halls %}<option>{{ h }}</option>{% endfor %}</select></div>
+      <div class="field"><label>Start time</label><input name="start_time" type="datetime-local" required></div>
+      <div class="field"><label>Price (฿)</label><input name="price" type="number" step="0.01" min="0" value="200" required></div>
+    </div>
+    <button class="btn primary" type="submit">Create showtime</button>
+  </form>
+</details>
+
+<div class="card table-wrap" style="margin-top:1rem">
+  <table>
+    <thead><tr><th>ID</th><th>Movie</th><th>Start</th><th>Hall</th><th>Price</th><th>Booked / Left</th><th></th></tr></thead>
+    <tbody>
+    {% for s in showtimes %}
+      <tr>
+        <td>{{ s.showtime_id }}</td>
+        <td>{{ s.movie_title }}</td>
+        <td>{{ s.start_time | dt('%a %d %b %Y %H:%M') }}</td>
+        <td>{{ s.hall }}</td>
+        <td>{{ s.price | baht }}</td>
+        <td>{{ s.booked_count }} / {{ s.seats_left }}</td>
+        <td><div class="actions">
+          <a class="btn sm" href="{{ url_for('booking.seat_map', showtime_id=s.showtime_id) }}">Seats</a>
+          <a class="btn sm" href="{{ url_for('admin.bookings', showtime_id=s.showtime_id) }}">Bookings</a>
+          <a class="btn sm" href="{{ url_for('admin.showtime_edit', showtime_id=s.showtime_id) }}">Edit</a>
+          {{ confirm_form(url_for('admin.showtime_delete', showtime_id=s.showtime_id), 'Delete', 'Delete this showtime?') }}
+        </div></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

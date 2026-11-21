@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% from "_macros.html" import status_chip %}
+{% block title %}Edit user{% endblock %}
+{% block content %}
+{% include "admin/_nav.html" %}
+<div class="page-head"><div><a class="link small" href="{{ url_for('admin.users') }}">← Users</a><h1>Edit user #{{ user.user_id }}</h1></div></div>
+<div class="grid grid-2">
+  <form class="card" method="post">
+    <div class="field"><label>Name</label><input name="name" value="{{ user.name }}" required></div>
+    <div class="field"><label>Email</label><input name="email" type="email" value="{{ user.email }}" required></div>
+    <div class="field"><label>Phone</label><input name="phone" value="{{ user.phone or '' }}"></div>
+    <div class="field"><label>Role</label>
+      <select name="role" {{ 'disabled' if user.user_id == current_user.user_id }}>
+        <option value="customer" {{ 'selected' if user.role == 'customer' }}>customer</option>
+        <option value="admin" {{ 'selected' if user.role == 'admin' }}>admin</option>
+      </select></div>
+    <button class="btn primary" type="submit">Save</button>
+  </form>
+  <div class="card">
+    <h2>Bookings</h2>
+    <table><thead><tr><th>#</th><th>Movie</th><th>Seats</th><th></th></tr></thead><tbody>
+      {% for b in bookings %}<tr><td>{{ b.booking_id }}</td><td>{{ b.movie_title }}</td><td>{{ b.seats or '—' }}</td><td>{{ status_chip(b.status) }}</td></tr>
+      {% else %}<tr><td colspan="4" class="muted">No bookings.</td></tr>{% endfor %}
+    </tbody></table>
+  </div>
+</div>
+{% endblock %}

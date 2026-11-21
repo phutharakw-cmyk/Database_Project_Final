@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% from "_macros.html" import status_chip %}
+{% block title %}Admin{% endblock %}
+{% block content %}
+{% include "admin/_nav.html" %}
+<h1>Dashboard</h1>
+<h3 class="muted" style="margin-top:1rem">MySQL tables</h3>
+<div class="grid grid-3">
+  <div class="stat sql"><div class="num">{{ sql.users }}</div><div class="lbl">users</div></div>
+  <div class="stat sql"><div class="num">{{ sql.movies }}</div><div class="lbl">movies</div></div>
+  <div class="stat sql"><div class="num">{{ sql.showtimes }}</div><div class="lbl">showtimes</div></div>
+  <div class="stat sql"><div class="num">{{ sql.bookings }}</div><div class="lbl">confirmed bookings</div></div>
+  <div class="stat sql"><div class="num">{{ sql.tickets }}</div><div class="lbl">tickets (seats sold)</div></div>
+  <div class="stat sql"><div class="num">{{ sql.revenue | baht }}</div><div class="lbl">revenue</div></div>
+</div>
+<h3 class="muted" style="margin-top:1.2rem">MongoDB collections</h3>
+<div class="grid grid-4">
+  {% for name, n in nosql.items() %}
+  <div class="stat nosql"><div class="num">{{ n }}</div><div class="lbl">{{ name }}</div></div>
+  {% endfor %}
+</div>
+
+<div class="grid grid-2" style="margin-top:1.2rem">
+  <div class="card">
+    <h2>Top movies by tickets</h2>
+    <table><thead><tr><th>Movie</th><th>Sold</th><th>Revenue</th></tr></thead><tbody>
+      {% for t in top %}<tr><td>{{ t.title }}</td><td>{{ t.sold }}</td><td>{{ t.revenue | baht }}</td></tr>{% endfor %}
+    </tbody></table>
+  </div>
+  <div class="card">
+    <div class="row between"><h2>Recent bookings</h2><a class="link small" href="{{ url_for('admin.bookings') }}">All →</a></div>
+    <table><thead><tr><th>#</th><th>Customer</th><th>Movie</th><th>Seats</th><th></th></tr></thead><tbody>
+      {% for b in recent %}<tr><td>{{ b.booking_id }}</td><td>{{ b.user_name }}</td><td>{{ b.movie_title }}</td><td>{{ b.seats or '—' }}</td><td>{{ status_chip(b.status) }}</td></tr>{% endfor %}
+    </tbody></table>
+  </div>
+</div>
+{% endblock %}

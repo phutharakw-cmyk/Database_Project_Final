@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Edit showtime{% endblock %}
+{% block content %}
+{% include "admin/_nav.html" %}
+<div class="page-head"><div><a class="link small" href="{{ url_for('admin.showtimes') }}">← Showtimes</a><h1>Edit showtime #{{ st.showtime_id }}</h1></div></div>
+<form class="card" method="post" style="max-width:720px">
+  <div class="form-row">
+    <div class="field"><label>Movie</label>
+      <select name="movie_id">{% for m in movies %}<option value="{{ m.movie_id }}" {{ 'selected' if m.movie_id == st.movie_id }}>{{ m.title }}</option>{% endfor %}</select></div>
+    <div class="field"><label>Hall</label>
+      <select name="hall">{% for h in halls %}<option {{ 'selected' if h == st.hall }}>{{ h }}</option>{% endfor %}</select></div>
+    <div class="field"><label>Start time</label><input name="start_time" type="datetime-local" value="{{ st.start_time | dt('%Y-%m-%dT%H:%M') }}" required></div>
+    <div class="field"><label>Price (฿)</label><input name="price" type="number" step="0.01" min="0" value="{{ st.price }}" required></div>
+  </div>
+  <p class="small muted">{{ st.booked_count }} seat(s) already sold. Sold tickets keep their original price.</p>
+  <button class="btn primary" type="submit">Save</button>
+</form>
+{% endblock %}
