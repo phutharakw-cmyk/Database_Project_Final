@@ -19,7 +19,7 @@
     <form method="post">
       <div class="form-row">
         <div class="field"><label>Showtime</label>
-          <select name="showtime_id">{% for s in showtimes %}<option value="{{ s.showtime_id }}" {{ 'selected' if s.showtime_id == sid }}>#{{ s.showtime_id }} {{ s.movie_title }} · {{ s.start_time | dt('%d %b %H:%M') }}</option>{% endfor %}</select></div>
+          <select name="showtime_id">{% for s in showtimes %}<option value="{{ s.showtime_id }}" {{ 'selected' if s.showtime_id == sid }}>#{{ s.showtime_id }} {{ s.title }} · {{ s.start_time | dt('%d %b %H:%M') }}</option>{% endfor %}</select></div>
         <div class="field"><label>Customer</label>
           <select name="user_id">{% for u in users %}<option value="{{ u.user_id }}" {{ 'selected' if form.user_id and form.user_id|int == u.user_id }}>{{ u.name }}</option>{% endfor %}</select></div>
         <div class="field"><label>Seats (comma separated)</label><input name="seats" value="{{ form.seats or 'A1, A2' }}"></div>

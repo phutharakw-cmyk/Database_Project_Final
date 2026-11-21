@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% from "_macros.html" import status_chip, pay_label %}
+{% block title %}My bookings{% endblock %}
+{% block content %}
+<div class="page-head"><h1>My bookings</h1><span class="tag-sql">MySQL · bookings JOIN tickets, showtimes, movies</span></div>
+{% if bookings %}
+<div class="card table-wrap">
+  <table>
+    <thead><tr><th>#</th><th>Movie</th><th>Showtime</th><th>Seats</th><th>Total</th><th>Payment</th><th>Status</th><th></th></tr></thead>
+    <tbody>
+    {% for b in bookings %}
+      <tr>
+        <td><a class="link" href="{{ url_for('booking.booking_detail', booking_id=b.booking_id) }}">#{{ b.booking_id }}</a></td>
+        <td>{{ b.movie_title }}</td>
+        <td>{{ b.start_time | dt('%d %b %H:%M') }}<br><span class="small muted">{{ b.hall }}</span></td>
+        <td>{{ b.seats or '—' }}</td>
+        <td>{{ b.total_amount | baht }}</td>
+        <td>
+          {% if b.status == 'confirmed' %}
+          <form class="inline-form" method="post" action="{{ url_for('booking.booking_payment', booking_id=b.booking_id) }}">
+            <select name="payment_method" onchange="this.form.submit()">
+              {% for m in methods %}<option value="{{ m }}" {{ 'selected' if m == b.payment_method }}>{{ pay_label(m) }}</option>{% endfor %}
+            </select>
+          </form>
+          {% else %}{{ pay_label(b.payment_method) }}{% endif %}
+        </td>
+        <td>{{ status_chip(b.status) }}</td>
+        <td>
+          {% if b.status == 'confirmed' %}
+          <form class="inline" method="post" action="{{ url_for('booking.booking_cancel', booking_id=b.booking_id) }}" onsubmit="return confirm('Cancel booking #{{ b.booking_id }}? Seats will be released.')">
+            <button class="btn danger sm" type="submit">Cancel</button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="card empty"><p>No bookings yet.</p><a class="btn primary" href="{{ url_for('movies.index') }}">Find a movie</a></div>
+{% endif %}
+{% endblock %}

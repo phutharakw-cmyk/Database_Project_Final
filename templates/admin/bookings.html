@@ -8,7 +8,7 @@
   <form class="inline-form" method="get">
     <select name="showtime_id">
       <option value="">All showtimes</option>
-      {% for s in showtimes %}<option value="{{ s.showtime_id }}" {{ 'selected' if s.showtime_id == sid }}>#{{ s.showtime_id }} {{ s.movie_title }} · {{ s.start_time | dt('%d %b %H:%M') }}</option>{% endfor %}
+      {% for s in showtimes %}<option value="{{ s.showtime_id }}" {{ 'selected' if s.showtime_id == sid }}>#{{ s.showtime_id }} {{ s.title }} · {{ s.start_time | dt('%d %b %H:%M') }}</option>{% endfor %}
     </select>
     <select name="status">
       <option value="">Any status</option>

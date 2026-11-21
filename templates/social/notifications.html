@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Notifications{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>Notifications</h1><span class="muted">{{ badge.unread }} unread</span></div>
+  <div class="row">
+    <span class="tag-nosql">MongoDB · notifications</span>
+    {% if badge.unread %}
+    <form method="post" action="{{ url_for('social.notification_read_all') }}"><button class="btn sm">Mark all as read</button></form>
+    {% endif %}
+  </div>
+</div>
+<div class="card">
+  {% for n in items %}
+  <div class="notif {{ 'unread' if not n.is_read }}">
+    <div>
+      <div class="notif-title">{{ n.title }}</div>
+      <div>{{ n.message }}</div>
+      <div class="small muted">{{ n.created_at | dt('%d %b %Y %H:%M') }}</div>
+    </div>
+    <div class="row" style="gap:.4rem">
+      {% if not n.is_read %}
+      <form method="post" action="{{ url_for('social.notification_read', notif_id=n.id) }}"><button class="btn sm">Mark read</button></form>
+      {% endif %}
+      <form method="post" action="{{ url_for('social.notification_delete', notif_id=n.id) }}"><button class="btn danger sm">Delete</button></form>
+    </div>
+  </div>
+  {% else %}
+  <div class="empty">No notifications.</div>
+  {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% from "_macros.html" import poster, status_chip, confirm_form %}
+{% block title %}Admin · Movies{% endblock %}
+{% block content %}
+{% include "movies/_style.html" %}
+<div class="page-head"><h1>Admin · Movies</h1><span class="tag-sql">MySQL · movies</span></div>
+
+<div class="card" style="margin-bottom:1.2rem">
+  <h2>Add a movie</h2>
+  <form method="post" enctype="multipart/form-data">
+    <div class="form-row">
+      <div class="field"><label>Title</label><input name="title" maxlength="200" required value="{{ form.title }}"></div>
+      <div class="field"><label>Genre</label><input name="genre" maxlength="100" required value="{{ form.genre }}" placeholder="Action, Drama ..."></div>
+    </div>
+    <div class="form-row">
+      <div class="field"><label>Duration (minutes)</label><input name="duration" type="number" min="1" max="600" required value="{{ form.duration }}"></div>
+      <div class="field"><label>Rating</label>
+        <select name="rating">{% for r in ratings %}<option {{ 'selected' if form.rating == r }}>{{ r }}</option>{% endfor %}</select>
+      </div>
+      <div class="field"><label>Status</label>
+        <select name="status">{% for s in statuses %}<option value="{{ s }}" {{ 'selected' if form.status == s }}>{{ s | replace('_', ' ') | title }}</option>{% endfor %}</select>
+      </div>
+    </div>
+    <div class="field"><label>Description</label><textarea name="description" rows="3">{{ form.description }}</textarea></div>
+    <div class="field"><label>Poster (optional)</label><input type="file" name="poster" accept="image/*"></div>
+    <button class="btn primary" type="submit">Add movie</button>
+  </form>
+</div>
+
+<div class="card">
+  <h2>All movies ({{ movies | length }})</h2>
+  {% if movies %}
+  <table class="list">
+    <thead><tr><th></th><th>Title</th><th>Genre</th><th>Length</th><th>Rating</th><th>Status</th><th>Upcoming</th><th></th></tr></thead>
+    <tbody>
+    {% for m in movies %}
+      <tr>
+        <td>{{ poster(m, 'thumb') if m.poster_path else '' }}</td>
+        <td><a class="link" href="{{ url_for('movies.detail', movie_id=m.movie_id) }}">{{ m.title }}</a></td>
+        <td>{{ m.genre }}</td>
+        <td>{{ m.duration_min }} min</td>
+        <td>{{ m.rating }}</td>
+        <td>{{ status_chip(m.status) }}</td>
+        <td>{{ m.upcoming_showtimes }}{% if m.next_showtime %}<div class="small muted">next {{ m.next_showtime | dt('%d %b %H:%M') }}</div>{% endif %}</td>
+        <td class="actions">
+          <a class="btn sm" href="{{ url_for('movies.admin_showtimes', movie_id=m.movie_id) }}">Showtimes</a>
+          <a class="btn sm" href="{{ url_for('movies.admin_edit_movie', movie_id=m.movie_id) }}">Edit</a>
+          {{ confirm_form(url_for('movies.admin_delete_movie', movie_id=m.movie_id), 'Delete',
+                          'Delete this movie and all its showtimes?') }}
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+    <p class="muted">No movies yet.</p>
+  {% endif %}
+</div>
+{% endblock %}

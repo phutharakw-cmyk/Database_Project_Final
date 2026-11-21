@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Choose seats{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <a class="link small" href="{{ url_for('movies.detail', movie_id=st.movie_id) }}">← {{ st.movie_title }}</a>
+    <h1>Choose your seats</h1>
+    <div class="chips"><span class="chip">{{ st.start_time | dt }}</span><span class="chip">{{ st.hall }}</span><span class="chip">{{ st.price | baht }} / seat</span><span class="chip">{{ st.seats_left }} seats left</span></div>
+  </div>
+  <span class="tag-sql">booked seats: MySQL tickets</span>
+</div>
+
+<form method="post" class="card" id="seatForm">
+  <div class="screen">SCREEN</div>
+  <div class="seatmap">
+    {% for row in layout %}
+    <div class="seat-row">
+      <span class="row-label">{{ row[0][0] }}</span>
+      {% for seat in row %}
+        {% if loop.index == 6 %}<span class="aisle"></span>{% endif %}
+        {% if seat in booked %}
+          <label class="seat booked" title="{{ seat }} already booked"><input type="checkbox" disabled><span>{{ seat }}</span></label>
+        {% else %}
+          <label class="seat" title="{{ seat }}"><input type="checkbox" name="seats" value="{{ seat }}" {{ 'checked' if seat in in_cart }}><span>{{ seat }}</span></label>
+        {% endif %}
+      {% endfor %}
+      <span class="row-label">{{ row[0][0] }}</span>
+    </div>
+    {% endfor %}
+  </div>
+  <div class="legend">
+    <span><i style="background:#2a3040;border:1px solid #3a4256"></i>Available</span>
+    <span><i style="background:var(--accent)"></i>Selected / in cart</span>
+    <span><i style="background:#4a4d55"></i>Booked (not clickable)</span>
+  </div>
+
+  <div class="sticky-bar">
+    <div><strong id="selCount">0</strong> seat(s): <span id="selSeats" class="muted">—</span><br>
+      <span class="muted small">Total</span> <strong id="selTotal">฿0.00</strong></div>
+    {% if current_user %}
+      <button class="btn primary" type="submit">Add to cart →</button>
+    {% else %}
+      <a class="btn primary" href="{{ url_for('auth.login', next=request.path) }}">Log in to book</a>
+    {% endif %}
+  </div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+  const price = {{ st.price | float }};
+  const boxes = document.querySelectorAll('#seatForm input[name=seats]');
+  const order = s => [s.charCodeAt(0), parseInt(s.slice(1), 10)];
+  function refresh() {
+    const sel = [...boxes].filter(b => b.checked).map(b => b.value)
+      .sort((a, b) => { const x = order(a), y = order(b); return x[0] - y[0] || x[1] - y[1]; });
+    document.getElementById('selCount').textContent = sel.length;
+    document.getElementById('selSeats').textContent = sel.length ? sel.join(', ') : '—';
+    document.getElementById('selTotal').textContent = '฿' + (sel.length * price).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+  }
+  boxes.forEach(b => b.addEventListener('change', function () {
+    if ([...boxes].filter(x => x.checked).length > 10) { this.checked = false; alert('Max 10 seats per booking'); }
+    refresh();
+  }));
+  refresh();
+})();
+</script>
+{% endblock %}

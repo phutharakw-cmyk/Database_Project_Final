@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% from "_macros.html" import poster, status_chip, confirm_form %}
+{% block title %}Showtimes · {{ movie.title }}{% endblock %}
+{% block content %}
+{% include "movies/_style.html" %}
+<p class="small"><a class="link" href="{{ url_for('movies.admin_movies') }}">← Admin · Movies</a></p>
+<div class="page-head"><h1>Showtimes · {{ movie.title }}</h1><span class="tag-sql">MySQL · showtimes</span></div>
+
+<div class="card row" style="gap:1rem; margin-bottom:1.2rem">
+  {{ poster(movie, 'thumb') if movie.poster_path else '' }}
+  <div>
+    <div class="chips">{{ status_chip(movie.status) }}<span class="chip">{{ movie.rating }}</span><span class="chip">{{ movie.genre }}</span><span class="chip">{{ movie.duration_min }} min</span></div>
+    <div class="small" style="margin-top:.4rem">
+      <a class="link" href="{{ url_for('movies.admin_edit_movie', movie_id=movie.movie_id) }}">Edit movie</a> ·
+      <a class="link" href="{{ url_for('movies.detail', movie_id=movie.movie_id) }}">View public page</a>
+    </div>
+  </div>
+</div>
+
+{% if movie.status != 'ended' %}
+<div class="card" style="margin-bottom:1.2rem">
+  <h2>Add a showtime</h2>
+  <form method="post">
+    <div class="form-row">
+      <div class="field"><label>Hall</label><input name="hall" maxlength="20" required value="{{ form.hall }}" placeholder="Hall 1" list="halls"></div>
+      <div class="field"><label>Start time</label><input name="start_time" type="datetime-local" required value="{{ form.start_time }}"></div>
+      <div class="field"><label>Price (฿)</label><input name="price" type="number" min="0" step="0.01" required value="{{ form.price }}"></div>
+    </div>
+    <datalist id="halls">{% for i in range(1, 6) %}<option value="Hall {{ i }}">{% endfor %}</datalist>
+    <button class="btn primary" type="submit">Add showtime</button>
+    <span class="small muted">Shows in the same hall need {{ cleanup_min }} minutes between them.</span>
+  </form>
+</div>
+{% else %}
+  <div class="flash info">This movie has ended, so new showtimes cannot be added. Change its status to add more.</div>
+{% endif %}
+
+<div class="card">
+  <h2>All showtimes ({{ showtimes | length }})</h2>
+  {% if showtimes %}
+  <table class="list">
+    <thead><tr><th>Date</th><th>Time</th><th>Hall</th><th>Price</th><th>Seats sold</th><th></th></tr></thead>
+    <tbody>
+    {% for s in showtimes %}
+      {% set past = s.start_time < now %}
+      <tr {% if past %}class="muted"{% endif %}>
+        <td>{{ s.start_time | dt('%a %d %b %Y') }}{% if past %} <span class="chip">past</span>{% endif %}</td>
+        <td>{{ s.start_time | dt('%H:%M') }}–{{ s.end_time | dt('%H:%M') }}</td>
+        <td>{{ s.hall }}</td>
+        <td>{{ s.price | baht }}</td>
+        <td>{{ s.seats_sold }}</td>
+        <td class="actions">
+          <a class="btn sm" href="{{ url_for('movies.admin_edit_showtime', showtime_id=s.showtime_id) }}">Edit</a>
+          {% if not s.seats_sold %}
+            {{ confirm_form(url_for('movies.admin_delete_showtime', showtime_id=s.showtime_id), 'Delete', 'Delete this showtime?') }}
+          {% endif %}
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+    <p class="muted">No showtimes yet.</p>
+  {% endif %}
+</div>
+{% endblock %}
