@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% from "_macros.html" import status_chip, pay_label, confirm_form %}
+{% block title %}Admin · Bookings{% endblock %}
+{% block content %}
+{% include "admin/_nav.html" %}
+<div class="page-head">
+  <div><h1>All bookings</h1><span class="tag-sql">MySQL · bookings JOIN users, showtimes, movies + tickets</span></div>
+  <form class="inline-form" method="get">
+    <select name="showtime_id">
+      <option value="">All showtimes</option>
+      {% for s in showtimes %}<option value="{{ s.showtime_id }}" {{ 'selected' if s.showtime_id == sid }}>#{{ s.showtime_id }} {{ s.movie_title }} · {{ s.start_time | dt('%d %b %H:%M') }}</option>{% endfor %}
+    </select>
+    <select name="status">
+      <option value="">Any status</option>
+      <option value="confirmed" {{ 'selected' if status == 'confirmed' }}>Confirmed</option>
+      <option value="cancelled" {{ 'selected' if status == 'cancelled' }}>Cancelled</option>
+    </select>
+    <button class="btn" type="submit">Filter</button>
+  </form>
+</div>
+<div class="card table-wrap">
+  <table>
+    <thead><tr><th>#</th><th>Customer</th><th>Movie / Showtime</th><th>Seats</th><th>Total</th><th>Payment</th><th>Status</th><th>Created</th><th></th></tr></thead>
+    <tbody>
+    {% for b in bookings %}
+      <tr>
+        <td>{{ b.booking_id }}</td>
+        <td>{{ b.user_name }}<br><span class="small muted">{{ b.user_email }}</span></td>
+        <td>{{ b.movie_title }}<br><span class="small muted">#{{ b.showtime_id }} · {{ b.start_time | dt('%d %b %H:%M') }} · {{ b.hall }}</span></td>
+        <td>{{ b.seats or '—' }}</td>
+        <td>{{ b.total_amount | baht }}</td>
+        <td>
+          {% if b.status == 'confirmed' %}
+          <form class="inline-form" method="post" action="{{ url_for('admin.booking_payment', booking_id=b.booking_id) }}">
+            <select name="payment_method" onchange="this.form.submit()">{% for m in methods %}<option value="{{ m }}" {{ 'selected' if m == b.payment_method }}>{{ pay_label(m) }}</option>{% endfor %}</select>
+          </form>
+          {% else %}{{ pay_label(b.payment_method) }}{% endif %}
+        </td>
+        <td>{{ status_chip(b.status) }}</td>
+        <td class="small">{{ b.created_at | dt('%d %b %H:%M') }}</td>
+        <td><div class="actions">
+          {% if b.status == 'confirmed' %}{{ confirm_form(url_for('admin.booking_cancel', booking_id=b.booking_id), 'Cancel', 'Cancel this booking and release its seats?', 'btn sm') }}{% endif %}
+          {{ confirm_form(url_for('admin.booking_delete', booking_id=b.booking_id), 'Delete', 'Delete this booking permanently?') }}
+        </div></td>
+      </tr>
+    {% else %}
+      <tr><td colspan="9" class="empty">No bookings.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

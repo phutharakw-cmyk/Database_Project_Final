@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% from "_macros.html" import confirm_form %}
+{% block title %}Admin · Users{% endblock %}
+{% block content %}
+{% include "admin/_nav.html" %}
+<div class="page-head"><h1>Users</h1><span class="tag-sql">MySQL · users</span></div>
+<div class="card table-wrap">
+  <table>
+    <thead><tr><th>ID</th><th></th><th>Name</th><th>Email</th><th>Phone</th><th>Role</th><th>Bookings</th><th>Joined</th><th></th></tr></thead>
+    <tbody>
+    {% for u in users %}
+      <tr>
+        <td>{{ u.user_id }}</td>
+        <td>{% if u.avatar_path %}<img class="avatar-sm" src="{{ url_for('static', filename=u.avatar_path) }}" alt="">{% endif %}</td>
+        <td><strong>{{ u.name }}</strong></td>
+        <td>{{ u.email }}</td>
+        <td>{{ u.phone or '—' }}</td>
+        <td><span class="chip {{ 'amber' if u.role == 'admin' }}">{{ u.role }}</span></td>
+        <td>{{ u.booking_count }}</td>
+        <td class="small">{{ u.created_at | dt('%d %b %Y') }}</td>
+        <td><div class="actions">
+          <a class="btn sm" href="{{ url_for('admin.user_edit', user_id=u.user_id) }}">Edit</a>
+          {% if u.user_id != current_user.user_id %}
+            {{ confirm_form(url_for('admin.user_delete', user_id=u.user_id), 'Delete', 'Delete this user and all their data?') }}
+          {% endif %}
+        </div></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
