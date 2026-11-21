@@ -1,0 +1,28 @@
+digraph Arch {
+  graph [rankdir=LR, bgcolor="white", fontname="Helvetica", pad=0.4, nodesep=0.5, ranksep=0.9, label="MovieTicketSystem — System Architecture (all local, no external APIs)", labelloc=t, fontsize=20, compound=true];
+  node  [fontname="Helvetica", fontsize=12, shape=box, style="rounded,filled", fillcolor="#F4F6FA", color="#9AA0B0"];
+  edge  [fontname="Helvetica", fontsize=10, color="#555555"];
+
+  browser [label="Web browser\n(customer / admin)\nHTML + CSS + JS", fillcolor="#FFFFFF"];
+
+  subgraph cluster_app {
+    label="Flask app server  (python main.py · port 5000)"; style="rounded"; color="#E5484D"; fontcolor="#E5484D";
+    routes  [label="routes/  (Blueprints)\nauth · movies · booking\nsocial · admin · api"];
+    tmpl    [label="templates/  (Jinja2)\n+ static/css"];
+    svc     [label="services/  (business logic)\nusers · movies · showtimes\nbookings · carts · reviews\nwatchlists · notifications"];
+    dbpy    [label="db.py\nget_mysql()  ·  get_mongo()"];
+    files   [label="static/uploads/\nposters/ · avatars/\n(local disk)", shape=folder, fillcolor="#FFF3D6"];
+    routes -> tmpl [label="render"];
+    routes -> svc  [label="call"];
+    svc -> dbpy;
+    svc -> files [label="save image"];
+  }
+
+  mysql [label="MySQL 8  (local / Docker)\nusers · movies · showtimes\nbookings · tickets\nACID transactions", shape=cylinder, fillcolor="#DCEBFA"];
+  mongo [label="MongoDB 7  (local / Docker)\ncarts · reviews\nwatchlists · notifications", shape=cylinder, fillcolor="#DDF3E6"];
+
+  browser -> routes [label="HTTP GET/POST\n(session cookie)"];
+  routes -> browser [label="HTML / JSON", style=dashed];
+  dbpy -> mysql [label="PyMySQL\nBEGIN / COMMIT / ROLLBACK"];
+  dbpy -> mongo [label="PyMongo"];
+}

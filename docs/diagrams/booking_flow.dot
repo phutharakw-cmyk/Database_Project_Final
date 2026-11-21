@@ -1,0 +1,19 @@
+digraph Flow {
+  graph [rankdir=TB, bgcolor="white", fontname="Helvetica", pad=0.4, label="create_booking() — hybrid transaction flow", labelloc=t, fontsize=18];
+  node  [fontname="Helvetica", fontsize=11, shape=box, style="rounded,filled", fillcolor="#F4F6FA"];
+  edge  [fontname="Helvetica", fontsize=10];
+  start [label="Confirm booking\n(seats from MongoDB cart)", fillcolor="#FFFFFF"];
+  begin [label="START TRANSACTION", fillcolor="#DCEBFA"];
+  hdr   [label="INSERT bookings (header)", fillcolor="#DCEBFA"];
+  loop  [label="INSERT tickets for each seat\nUNIQUE(showtime_id, seat_label)", fillcolor="#DCEBFA"];
+  dup   [label="Duplicate key?", shape=diamond, fillcolor="#FFF3D6"];
+  total [label="UPDATE bookings total_amount", fillcolor="#DCEBFA"];
+  commit[label="COMMIT", fillcolor="#C9F0D8"];
+  rb    [label="ROLLBACK\nheader + all tickets undone\n(A1 stays free)", fillcolor="#FBD5D6"];
+  cart  [label="MongoDB: clear_cart(user_id)", fillcolor="#DDF3E6"];
+  ntf   [label="MongoDB: create_notification(\n'Booking confirmed')", fillcolor="#DDF3E6"];
+  ntf2  [label="MongoDB: create_notification(\n'Booking failed')", fillcolor="#DDF3E6"];
+  start -> begin -> hdr -> loop -> dup;
+  dup -> total [label="no"]; total -> commit -> cart -> ntf;
+  dup -> rb [label="yes"]; rb -> ntf2;
+}

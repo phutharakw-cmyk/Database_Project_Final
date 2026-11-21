@@ -1,0 +1,52 @@
+digraph NoSQL {
+  graph [rankdir=LR, bgcolor="white", fontname="Helvetica", pad=0.4, nodesep=0.5, ranksep=1.3, label="MovieTicketSystem — MongoDB Document Schema", labelloc=t, fontsize=20];
+  node  [shape=plain, fontname="Helvetica", fontsize=11];
+  edge  [fontname="Helvetica", fontsize=10, color="#888888", style=dashed];
+
+  sql [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="6">
+    <TR><TD BGCOLOR="#3E8ED0"><FONT COLOR="white"><B>MySQL (referenced ids)</B></FONT></TD></TR>
+    <TR><TD ALIGN="LEFT" PORT="u">users.user_id</TD></TR>
+    <TR><TD ALIGN="LEFT" PORT="m">movies.movie_id</TD></TR>
+    <TR><TD ALIGN="LEFT" PORT="s">showtimes.showtime_id</TD></TR></TABLE>>];
+
+  carts [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="5">
+    <TR><TD BGCOLOR="#30A46C" COLSPAN="2"><FONT COLOR="white"><B>carts</B></FONT></TD></TR>
+    <TR><TD ALIGN="LEFT">_id</TD><TD ALIGN="LEFT">ObjectId</TD></TR>
+    <TR><TD ALIGN="LEFT">user_id <I>(unique)</I></TD><TD ALIGN="LEFT">int</TD></TR>
+    <TR><TD ALIGN="LEFT">showtime_id</TD><TD ALIGN="LEFT">int</TD></TR>
+    <TR><TD ALIGN="LEFT">items</TD><TD ALIGN="LEFT">[ {seat_label: str, price: double} ]</TD></TR>
+    <TR><TD ALIGN="LEFT">updated_at</TD><TD ALIGN="LEFT">Date</TD></TR></TABLE>>];
+
+  reviews [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="5">
+    <TR><TD BGCOLOR="#30A46C" COLSPAN="2"><FONT COLOR="white"><B>reviews</B></FONT></TD></TR>
+    <TR><TD ALIGN="LEFT">_id</TD><TD ALIGN="LEFT">ObjectId</TD></TR>
+    <TR><TD ALIGN="LEFT">user_id, user_name</TD><TD ALIGN="LEFT">int, str</TD></TR>
+    <TR><TD ALIGN="LEFT">movie_id</TD><TD ALIGN="LEFT">int</TD></TR>
+    <TR><TD ALIGN="LEFT">rating</TD><TD ALIGN="LEFT">int 1-5</TD></TR>
+    <TR><TD ALIGN="LEFT">comment</TD><TD ALIGN="LEFT">str</TD></TR>
+    <TR><TD ALIGN="LEFT">created_at, updated_at</TD><TD ALIGN="LEFT">Date</TD></TR>
+    <TR><TD ALIGN="LEFT" COLSPAN="2"><I>unique (user_id, movie_id)</I></TD></TR></TABLE>>];
+
+  watchlists [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="5">
+    <TR><TD BGCOLOR="#30A46C" COLSPAN="2"><FONT COLOR="white"><B>watchlists</B></FONT></TD></TR>
+    <TR><TD ALIGN="LEFT">_id</TD><TD ALIGN="LEFT">ObjectId</TD></TR>
+    <TR><TD ALIGN="LEFT">user_id</TD><TD ALIGN="LEFT">int</TD></TR>
+    <TR><TD ALIGN="LEFT">movie_id, movie_title</TD><TD ALIGN="LEFT">int, str</TD></TR>
+    <TR><TD ALIGN="LEFT">note</TD><TD ALIGN="LEFT">str</TD></TR>
+    <TR><TD ALIGN="LEFT">added_at</TD><TD ALIGN="LEFT">Date</TD></TR>
+    <TR><TD ALIGN="LEFT" COLSPAN="2"><I>unique (user_id, movie_id)</I></TD></TR></TABLE>>];
+
+  notifications [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="5">
+    <TR><TD BGCOLOR="#30A46C" COLSPAN="2"><FONT COLOR="white"><B>notifications</B></FONT></TD></TR>
+    <TR><TD ALIGN="LEFT">_id</TD><TD ALIGN="LEFT">ObjectId</TD></TR>
+    <TR><TD ALIGN="LEFT">user_id</TD><TD ALIGN="LEFT">int</TD></TR>
+    <TR><TD ALIGN="LEFT">title</TD><TD ALIGN="LEFT">str</TD></TR>
+    <TR><TD ALIGN="LEFT">message</TD><TD ALIGN="LEFT">str</TD></TR>
+    <TR><TD ALIGN="LEFT">is_read</TD><TD ALIGN="LEFT">bool</TD></TR>
+    <TR><TD ALIGN="LEFT">created_at</TD><TD ALIGN="LEFT">Date</TD></TR></TABLE>>];
+
+  sql:u -> carts; sql:s -> carts;
+  sql:u -> reviews; sql:m -> reviews;
+  sql:u -> watchlists; sql:m -> watchlists;
+  sql:u -> notifications;
+}

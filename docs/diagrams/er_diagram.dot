@@ -1,0 +1,63 @@
+digraph ER {
+  graph [rankdir=LR, bgcolor="white", fontname="Helvetica", pad=0.4, nodesep=0.6, ranksep=1.1, label="MovieTicketSystem — MySQL ER Diagram", labelloc=t, fontsize=20];
+  node  [shape=plain, fontname="Helvetica", fontsize=11];
+  edge  [fontname="Helvetica", fontsize=10, color="#555555", arrowhead=crow, arrowtail=tee, dir=both];
+
+  users [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="5">
+    <TR><TD BGCOLOR="#3E8ED0" COLSPAN="2"><FONT COLOR="white"><B>users</B></FONT></TD></TR>
+    <TR><TD ALIGN="LEFT"><B>PK</B> user_id</TD><TD ALIGN="LEFT" PORT="pk">INT AI</TD></TR>
+    <TR><TD ALIGN="LEFT">name</TD><TD ALIGN="LEFT">VARCHAR(100)</TD></TR>
+    <TR><TD ALIGN="LEFT">email <I>(UNIQUE)</I></TD><TD ALIGN="LEFT">VARCHAR(150)</TD></TR>
+    <TR><TD ALIGN="LEFT">password_hash</TD><TD ALIGN="LEFT">VARCHAR(255)</TD></TR>
+    <TR><TD ALIGN="LEFT">phone</TD><TD ALIGN="LEFT">VARCHAR(20)</TD></TR>
+    <TR><TD ALIGN="LEFT">role</TD><TD ALIGN="LEFT">ENUM(customer,admin)</TD></TR>
+    <TR><TD ALIGN="LEFT">avatar_path</TD><TD ALIGN="LEFT">VARCHAR(255)</TD></TR>
+    <TR><TD ALIGN="LEFT">created_at</TD><TD ALIGN="LEFT">DATETIME</TD></TR></TABLE>>];
+
+  movies [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="5">
+    <TR><TD BGCOLOR="#3E8ED0" COLSPAN="2"><FONT COLOR="white"><B>movies</B></FONT></TD></TR>
+    <TR><TD ALIGN="LEFT"><B>PK</B> movie_id</TD><TD ALIGN="LEFT" PORT="pk">INT AI</TD></TR>
+    <TR><TD ALIGN="LEFT">title</TD><TD ALIGN="LEFT">VARCHAR(200)</TD></TR>
+    <TR><TD ALIGN="LEFT">genre</TD><TD ALIGN="LEFT">VARCHAR(100)</TD></TR>
+    <TR><TD ALIGN="LEFT">duration_min</TD><TD ALIGN="LEFT">INT (CHECK &gt; 0)</TD></TR>
+    <TR><TD ALIGN="LEFT">rating</TD><TD ALIGN="LEFT">VARCHAR(10)</TD></TR>
+    <TR><TD ALIGN="LEFT">description</TD><TD ALIGN="LEFT">TEXT</TD></TR>
+    <TR><TD ALIGN="LEFT">poster_path</TD><TD ALIGN="LEFT">VARCHAR(255)</TD></TR>
+    <TR><TD ALIGN="LEFT">status</TD><TD ALIGN="LEFT">ENUM</TD></TR>
+    <TR><TD ALIGN="LEFT">created_at</TD><TD ALIGN="LEFT">DATETIME</TD></TR></TABLE>>];
+
+  showtimes [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="5">
+    <TR><TD BGCOLOR="#3E8ED0" COLSPAN="2"><FONT COLOR="white"><B>showtimes</B></FONT></TD></TR>
+    <TR><TD ALIGN="LEFT"><B>PK</B> showtime_id</TD><TD ALIGN="LEFT" PORT="pk">INT AI</TD></TR>
+    <TR><TD ALIGN="LEFT" PORT="fk"><B>FK</B> movie_id</TD><TD ALIGN="LEFT">INT → movies</TD></TR>
+    <TR><TD ALIGN="LEFT">hall</TD><TD ALIGN="LEFT">VARCHAR(20)</TD></TR>
+    <TR><TD ALIGN="LEFT">start_time</TD><TD ALIGN="LEFT">DATETIME</TD></TR>
+    <TR><TD ALIGN="LEFT">price</TD><TD ALIGN="LEFT">DECIMAL(8,2)</TD></TR>
+    <TR><TD ALIGN="LEFT" COLSPAN="2"><I>UNIQUE (hall, start_time)</I></TD></TR></TABLE>>];
+
+  bookings [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="5">
+    <TR><TD BGCOLOR="#E5484D" COLSPAN="2"><FONT COLOR="white"><B>bookings</B></FONT></TD></TR>
+    <TR><TD ALIGN="LEFT"><B>PK</B> booking_id</TD><TD ALIGN="LEFT" PORT="pk">INT AI</TD></TR>
+    <TR><TD ALIGN="LEFT" PORT="fku"><B>FK</B> user_id</TD><TD ALIGN="LEFT">INT → users</TD></TR>
+    <TR><TD ALIGN="LEFT" PORT="fks"><B>FK</B> showtime_id</TD><TD ALIGN="LEFT">INT → showtimes</TD></TR>
+    <TR><TD ALIGN="LEFT">total_amount</TD><TD ALIGN="LEFT">DECIMAL(10,2)</TD></TR>
+    <TR><TD ALIGN="LEFT">payment_method</TD><TD ALIGN="LEFT">ENUM</TD></TR>
+    <TR><TD ALIGN="LEFT">status</TD><TD ALIGN="LEFT">ENUM(confirmed,cancelled)</TD></TR>
+    <TR><TD ALIGN="LEFT">created_at / cancelled_at</TD><TD ALIGN="LEFT">DATETIME</TD></TR>
+    <TR><TD ALIGN="LEFT">cancelled_seats</TD><TD ALIGN="LEFT">VARCHAR(255)</TD></TR></TABLE>>];
+
+  tickets [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="5">
+    <TR><TD BGCOLOR="#E5484D" COLSPAN="2"><FONT COLOR="white"><B>tickets</B></FONT></TD></TR>
+    <TR><TD ALIGN="LEFT"><B>PK</B> ticket_id</TD><TD ALIGN="LEFT" PORT="pk">INT AI</TD></TR>
+    <TR><TD ALIGN="LEFT" PORT="fkb"><B>FK</B> booking_id</TD><TD ALIGN="LEFT">INT → bookings</TD></TR>
+    <TR><TD ALIGN="LEFT" PORT="fks"><B>FK</B> showtime_id</TD><TD ALIGN="LEFT">INT → showtimes</TD></TR>
+    <TR><TD ALIGN="LEFT">seat_label</TD><TD ALIGN="LEFT">VARCHAR(5)</TD></TR>
+    <TR><TD ALIGN="LEFT">price</TD><TD ALIGN="LEFT">DECIMAL(8,2)</TD></TR>
+    <TR><TD ALIGN="LEFT" COLSPAN="2" BGCOLOR="#FFF3D6"><B>UNIQUE (showtime_id, seat_label)</B></TD></TR></TABLE>>];
+
+  movies:pk:e -> showtimes:fk:w [label="1 : N  (CASCADE)"];
+  users:pk:e -> bookings:fku:w [label="1 : N"];
+  showtimes:pk:e -> bookings:fks:w [label="1 : N  (RESTRICT)"];
+  bookings:pk:e -> tickets:fkb:w [label="1 : N  (CASCADE)"];
+  showtimes:pk:e -> tickets:fks:w [label="1 : N"];
+}
