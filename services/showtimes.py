@@ -7,6 +7,8 @@ from db import query_all, query_one, execute
 from services import require_text, to_int
 from services.movies import get_movie
 
+HALLS = ("Hall 1", "Hall 2", "Hall 3", "Hall 4", "Hall 5")
+
 CLEANUP_MIN = 15
 MAX_PRICE = Decimal("999999.99")
 
