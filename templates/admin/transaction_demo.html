@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Transaction demo{% endblock %}
+{% macro seat_list(rows) -%}
+  {% for r in rows %}<span class="seat-pill">{{ r.seat_label }}</span>{% else %}<span class="muted">(no seats booked)</span>{% endfor %}
+{%- endmacro %}
+{% block content %}
+{% include "admin/_nav.html" %}
+<div class="page-head">
+  <div>
+    <h1>SQL transaction &amp; rollback demo</h1>
+    <p class="muted" style="margin:0">Runs the real <code>create_booking()</code> used by the cart. Shows the <code>tickets</code> table before, every SQL step, and after.</p>
+  </div>
+  <span class="tag-sql">MySQL · UNIQUE(showtime_id, seat_label)</span>
+</div>
+
+<div class="grid grid-2">
+  <div class="card">
+    <h2>Run a booking</h2>
+    <form method="post">
+      <div class="form-row">
+        <div class="field"><label>Showtime</label>
+          <select name="showtime_id">{% for s in showtimes %}<option value="{{ s.showtime_id }}" {{ 'selected' if s.showtime_id == sid }}>#{{ s.showtime_id }} {{ s.title }} · {{ s.start_time | dt('%d %b %H:%M') }}</option>{% endfor %}</select></div>
+        <div class="field"><label>Customer</label>
+          <select name="user_id">{% for u in users %}<option value="{{ u.user_id }}" {{ 'selected' if form.user_id and form.user_id|int == u.user_id }}>{{ u.name }}</option>{% endfor %}</select></div>
+        <div class="field"><label>Seats (comma separated)</label><input name="seats" value="{{ form.seats or 'A1, A2' }}"></div>
+      </div>
+      <button class="btn primary" type="submit">Run create_booking()</button>
+    </form>
+    <form method="post" style="margin-top:.6rem" onsubmit="return confirm('Delete every booking of this showtime?')">
+      <input type="hidden" name="showtime_id" value="{{ sid }}">
+      <button class="btn danger sm" name="action" value="reset">Reset demo (delete bookings of showtime #{{ sid }})</button>
+    </form>
+  </div>
+  <div class="card">
+    <h2>How to show the rollback</h2>
+    <ol class="small" style="padding-left:1.1rem;margin:0">
+      <li>Pick an empty showtime and press <em>Reset demo</em>.</li>
+      <li>Customer <strong>Bob</strong>, seats <code>A2</code> → COMMIT.</li>
+      <li>Customer <strong>Alice</strong>, seats <code>A1, A2</code> → A1 inserts OK, A2 hits the UNIQUE constraint → <strong>ROLLBACK</strong>.</li>
+      <li>"After" still shows only A2 → <strong>A1 is still free</strong>, no partial booking saved.</li>
+    </ol>
+  </div>
+</div>
+
+<div class="grid grid-2" style="margin-top:1rem">
+  <div class="card">
+    <h3>BEFORE · tickets of showtime #{{ sid }}</h3>
+    {{ seat_list(before) }}
+  </div>
+  <div class="card">
+    <h3>AFTER · tickets of showtime #{{ sid }}</h3>
+    {% if after is not none %}{{ seat_list(after) }}{% else %}<span class="muted">Run a booking to see the result.</span>{% endif %}
+  </div>
+</div>
+
+{% if result %}
+<div class="card" style="margin-top:1rem">
+  <div class="flash {{ 'success' if result.ok else 'danger' }}" style="margin-bottom:.8rem">{{ result.message }}</div>
+  <h3>SQL steps</h3>
+  <div class="trace">{% for line in result.trace %}<div class="{{ 'rb' if 'ROLLBACK' in line else ('bad' if 'FAILED' in line else ('ok' if 'OK' in line or 'COMMIT' in line else '')) }}">{{ loop.index }}. {{ line }}</div>{% endfor %}</div>
+</div>
+{% endif %}
+{% endblock %}
